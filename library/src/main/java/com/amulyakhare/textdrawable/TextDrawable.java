@@ -31,6 +31,7 @@ public class TextDrawable extends ShapeDrawable {
     private final Paint borderPaint;
     private static final float SHADE_FACTOR = 0.9f;
     private final String text;
+    private final String textRow2;
     private final RectShape shape;
     private final int height;
     private final int width;
@@ -49,6 +50,10 @@ public class TextDrawable extends ShapeDrawable {
 
         // text and color
         text = builder.toUpperCase ? builder.text.toUpperCase() : builder.text;
+        if(builder.textRow2 != null)
+            textRow2 = builder.toUpperCase ? builder.textRow2.toUpperCase() : builder.textRow2;
+        else
+            textRow2 = null;
 
         // text paint settings
         fontSize = builder.fontSize;
@@ -97,7 +102,14 @@ public class TextDrawable extends ShapeDrawable {
         int height = this.height < 0 ? r.height() : this.height;
         int fontSize = this.fontSize < 0 ? (Math.min(width, height) / 2) : this.fontSize;
         textPaint.setTextSize(fontSize);
-        canvas.drawText(text, width / 2, height / 2 - ((textPaint.descent() + textPaint.ascent()) / 2), textPaint);
+
+        if(textRow2 == null){            
+            canvas.drawText(text, width / 2, height / 2 - ((textPaint.descent() + textPaint.ascent()) / 2), textPaint);
+        }
+        else{
+            canvas.drawText(text, width / 2, height / 2 - 5, textPaint);
+            canvas.drawText(textRow2, width / 2, height / 2 - (textPaint.descent() + textPaint.ascent()) + 5, textPaint);
+        }
 
         canvas.restoreToCount(count);
 
@@ -149,6 +161,7 @@ public class TextDrawable extends ShapeDrawable {
 
         private Context context;
         private String text;
+        private String textRow2;
         private int color;
         private int borderThickness;
         private int width;
@@ -164,6 +177,7 @@ public class TextDrawable extends ShapeDrawable {
         private Builder(@NonNull Context context) {
             this.context = context;
             text = "";
+            textRow2 = null;
             color = Color.GRAY;
             textColor = Color.WHITE;
             borderThickness = 0;
@@ -323,9 +337,21 @@ public class TextDrawable extends ShapeDrawable {
         }
 
         @Override
+        public TextDrawable buildRound(@NonNull String text, @NonNull String textRow2, @ColorInt int color) {
+            round();
+            return build(text, textRow2, color);
+        }
+
+        @Override
         public TextDrawable buildRoundRes(@NonNull String text, @ColorRes int colorRes) {
             //noinspection deprecation
             return buildRound(text, context.getResources().getColor(colorRes));
+        }
+
+        @Override
+        public TextDrawable buildRoundRes(@NonNull String text, @NonNull String textRow2, @ColorRes int colorRes) {
+            //noinspection deprecation
+            return buildRound(text, textRow2, context.getResources().getColor(colorRes));
         }
 
         @Override
@@ -338,9 +364,25 @@ public class TextDrawable extends ShapeDrawable {
         }
 
         @Override
+        public TextDrawable build(@NonNull String text, @NonNull String textRow2, @ColorInt int color) {
+        	if (this.font == null)
+                this.font = TypefaceHelper.get("sans-serif-light", Typeface.NORMAL);
+            this.color = color;
+            this.text = text;
+            this.textRow2 = textRow2;
+            return new TextDrawable(this);
+        }
+
+        @Override
         public TextDrawable buildRes(@NonNull String text, @ColorRes int colorRes) {
             //noinspection deprecation
             return build(text, context.getResources().getColor(colorRes));
+        }
+
+        @Override
+        public TextDrawable buildRes(@NonNull String text, @NonNull String textRow2, @ColorRes int colorRes) {
+            //noinspection deprecation
+            return build(text, textRow2, context.getResources().getColor(colorRes));
         }
     }
 
@@ -380,7 +422,11 @@ public class TextDrawable extends ShapeDrawable {
 
         TextDrawable build(@NonNull String text, @ColorInt int color);
 
+        TextDrawable build(@NonNull String text, @NonNull String textRow2, @ColorInt int color);
+
         TextDrawable buildRes(@NonNull String text, @ColorRes int colorRes);
+
+        TextDrawable buildRes(@NonNull String text, @NonNull String textRow2, @ColorRes int colorRes);
     }
 
     public interface IShapeBuilder {
@@ -405,6 +451,10 @@ public class TextDrawable extends ShapeDrawable {
 
         TextDrawable buildRound(@NonNull String text, @ColorInt int color);
 
+        TextDrawable buildRound(@NonNull String text, @NonNull String textRow2, @ColorInt int color);
+
         TextDrawable buildRoundRes(@NonNull String text, @ColorRes int colorRes);
+
+        TextDrawable buildRoundRes(@NonNull String text, @NonNull String textRow2, @ColorRes int color);
     }
 }
